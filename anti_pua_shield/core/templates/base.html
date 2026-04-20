@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}反PUA护盾生成器{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen py-8 px-4">
+    {% block content %}{% endblock %}
+    {% load static %}
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        const csrftoken = '{{ csrf_token }}';
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
