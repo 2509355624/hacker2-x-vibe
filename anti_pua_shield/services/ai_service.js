@@ -53,6 +53,104 @@ async function generate_pua_shield_content(scene, user_input) {
   }
 }
 
+async function generate_game_questions(scene, level, count = 5) {
+  const levelPrompt = {
+    easy: "简单 - 常见的、比较直白的PUA话术，反击难度低，成功率高的怼法明显",
+    medium: "中等 - 比较隐蔽的、拐弯抹角的PUA话术，需要一定技巧才能怼成功",
+    hard: "困难 - 非常隐蔽、高级的PUA技巧，话术看似合理但实则道德绑架，反击难度高"
+  };
+
+  const prompt = `你是反PUA大作战游戏的设计师。请为"${scene}"场景生成${count}道游戏题目。
+
+难度要求：${levelPrompt[level]}
+
+每道题目必须包含：
+1. pua_line: 一句BOSS（攻击者）说的PUA话术，要符合场景，真实感强
+2. options: 4个反击选项，每个选项包含：
+   - text: 具体的回怼话术（口语化、有网感）
+   - is_correct: true表示这是能成功怼回去的选项，false表示会被反怼
+
+题目设计要点：
+- 正确答案要有爽感，能真正怼得对方哑口无言
+- 错误答案要看起来像那么回事，但仔细想会发现力度不够或容易被反驳
+- 答案顺序要随机打乱，不要让正确答案总在同一个位置
+
+输出必须是标准JSON数组格式：
+[
+  {
+    "pua_line": "PUA话术内容",
+    "options": [
+      {"text": "选项A话术", "is_correct": false},
+      {"text": "选项B话术", "is_correct": true},
+      {"text": "选项C话术", "is_correct": false},
+      {"text": "选项D话术", "is_correct": false}
+    ]
+  }
+]
+
+注意：严格输出JSON，不要任何解释、备注、markdown标记`;
+
+  try {
+    const response = await client.chat.completions.create({
+      model: 'deepseek-r1-250528',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.8
+    });
+
+    const content = response.choices[0].message.content;
+    return JSON.parse(content);
+  } catch (e) {
+    console.error('AI 生成题目失败:', e);
+    return { error: `题目生成失败：${e.message}` };
+  }
+}
+
+async function analyze_reply(pua_line, your_reply) {
+  const prompt = `你是反PUA大作战的AI裁判。请分析用户在面对PUA攻击时的回复质量。
+
+【BOSS攻击】：${pua_line}
+【用户回复】：${your_reply}
+
+请从以下几个维度评估（每项0-100分）：
+1. 反击力度：能否让对方哑口无言？
+2. 情商水平：是否既怼了人又不失体面？
+3. 心理影响：能否有效摆脱对方的精神控制？
+
+请输出标准JSON格式：
+{
+  "score": 综合分数(0-100),
+  "breakthrough": 反击力度分数(0-100),
+  "emotion_q": 情商水平分数(0-100),
+  "mental_health": 心理影响分数(0-100),
+  "reason": "一段简短的评价，30字以内",
+  "best_reply": "一个更好的怼法建议（如果没有则不返回）"
+}
+
+评分标准：
+- 90分以上：完美怼回，有爽感，能让对方完全无法反驳
+- 70-89分：怼得不错，有一定杀伤力
+- 50-69分：勉强能怼，但不够爽或容易被反驳
+- 50分以下：被反怼了，回复太软或中了对方圈套
+
+注意：只输出JSON，不要任何其他文字`;
+
+  try {
+    const response = await client.chat.completions.create({
+      model: 'deepseek-r1-250528',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3
+    });
+
+    const content = response.choices[0].message.content;
+    return JSON.parse(content);
+  } catch (e) {
+    console.error('AI 分析失败:', e);
+    return { error: `分析失败：${e.message}` };
+  }
+}
+
 module.exports = {
-  generate_pua_shield_content
+  generate_pua_shield_content,
+  generate_game_questions,
+  analyze_reply
 };

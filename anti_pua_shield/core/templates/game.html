@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反PUA大作战 - 拒绝精神内耗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Noto Sans SC', sans-serif; }
+        .zcool { font-family: 'ZCOOL KuaiLe', cursive; }
+
+        :root {
+            --danger: #ff3b5c;
+            --safe: #00d26a;
+            --gold: #ffd700;
+            --purple: #9b59b6;
+            --dark: #0a0a1a;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ff3b5c, #ffd700, #00d26a, #00d2ff, #9b59b6);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 4s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hp-bar-container {
+            position: relative;
+            height: 28px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 14px;
+            border: 2px solid rgba(255,255,255,0.15);
+            overflow: hidden;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255,59,92,0.2);
+        }
+
+        .hp-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hp-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            100% { left: 100%; }
+        }
+
+        .boss-hp { background: linear-gradient(90deg, #ff3b5c, #ff6b81); box-shadow: 0 0 15px rgba(255,59,92,0.6); }
+        .player-hp { background: linear-gradient(90deg, #00d26a, #7bed9f); box-shadow: 0 0 15px rgba(0,210,106,0.6); }
+
+        .scene-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scene-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.1) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .scene-card:hover::before { opacity: 1; }
+        .scene-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .scene-icon { font-size: 3rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
+
+        .progress-rail {
+            height: 10px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.4);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d2ff, #9b59b6, #ff3b5c);
+            border-radius: 5px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px rgba(155,89,182,0.6);
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 16px 20px;
+            text-align: left;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: var(--accent, #9b59b6);
+            transform: scaleY(0);
+            transition: transform 0.2s;
+        }
+
+        .option-btn:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateX(6px);
+        }
+
+        .option-btn:hover::before { transform: scaleY(1); }
+
+        .option-btn.correct {
+            background: rgba(0,210,106,0.15) !important;
+            border-color: #00d26a !important;
+            animation: correctPulse 0.6s ease;
+        }
+
+        .option-btn.wrong {
+            background: rgba(255,59,92,0.15) !important;
+            border-color: #ff3b5c !important;
+            animation: wrongShake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(0,210,106,0); }
+            50% { box-shadow: 0 0 30px rgba(0,210,106,0.5); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .damage-pop {
+            position: fixed;
+            font-size: 2rem;
+            font-weight: 900;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            pointer-events: none;
+            z-index: 999;
+            animation: popFloat 1s ease-out forwards;
+        }
+
+        .damage-pop.damage { color: var(--danger); text-shadow: 0 0 20px rgba(255,59,92,0.8); }
+        .damage-pop.heal { color: var(--safe); text-shadow: 0 0 20px rgba(0,210,106,0.8); }
+        .damage-pop.crit { font-size: 3rem; }
+
+        @keyframes popFloat {
+            0% { opacity: 1; transform: translateY(0) scale(0.5); }
+            20% { transform: translateY(-20px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
+        }
+
+        .boss-sprite {
+            width: 180px;
+            height: 180px;
+            position: relative;
+            animation: bossFloat 3s ease-in-out infinite;
+        }
+
+        .boss-sprite.attacking { animation: bossAttack 0.5s ease; }
+        .boss-sprite.hurt { animation: bossHurt 0.4s ease; }
+        .boss-sprite.defeated { animation: bossDefeat 1s ease forwards; }
+
+        @keyframes bossFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        @keyframes bossAttack {
+            0%, 100% { transform: translateX(0) scale(1); }
+            50% { transform: translateX(-30px) scale(1.15); }
+        }
+
+        @keyframes bossHurt {
+            0%, 100% { transform: translateX(0); filter: brightness(1); }
+            25%, 75% { transform: translateX(-10px); filter: brightness(2) hue-rotate(-20deg); }
+        }
+
+        @keyframes bossDefeat {
+            0% { transform: scale(1) rotate(0); opacity: 1; }
+            50% { transform: scale(1.2) rotate(5deg); opacity: 0.8; }
+            100% { transform: scale(0) rotate(-20deg); opacity: 0; }
+        }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            border-radius: 50%;
+            z-index: 998;
+        }
+
+        @keyframes particleFly {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+        }
+
+        .score-display {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 1.8rem;
+            text-shadow: 0 0 20px rgba(255,215,0,0.6);
+        }
+
+        .custom-input-area {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 28px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(155,89,182,0.4);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(155,89,182,0.5);
+        }
+
+        .ai-result-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .result-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+
+        .result-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .victory-overlay, .defeat-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .victory-overlay {
+            background: radial-gradient(circle, rgba(0,210,106,0.2) 0%, rgba(0,0,0,0.9) 100%);
+        }
+
+        .defeat-overlay {
+            background: radial-gradient(circle, rgba(255,59,92,0.2) 0%, rgba(0,0,0,0.9) 100%);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .victory-text {
+            font-size: 4rem;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            color: #ffd700;
+            text-shadow: 0 0 40px rgba(255,215,0,0.8), 0 0 80px rgba(255,215,0,0.4);
+            animation: victoryPulse 1s ease infinite;
+        }
+
+        @keyframes victoryPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .defeat-text {
+            font-size: 3rem;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            color: #ff3b5c;
+            text-shadow: 0 0 40px rgba(255,59,92,0.8);
+        }
+
+        .combo-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 4rem;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255,215,0,0.8);
+            pointer-events: none;
+            z-index: 999;
+            animation: comboPopup 0.8s ease-out forwards;
+        }
+
+        @keyframes comboPopup {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+            100% { opacity: 0; transform: translate(-50%, -70%) scale(1); }
+        }
+
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .level-badge.easy { background: rgba(0,210,106,0.2); color: #00d26a; border: 1px solid rgba(0,210,106,0.3); }
+        .level-badge.medium { background: rgba(255,215,0,0.2); color: #ffd700; border: 1px solid rgba(255,215,0,0.3); }
+        .level-badge.hard { background: rgba(255,59,92,0.2); color: #ff3b5c; border: 1px solid rgba(255,59,92,0.3); }
+
+        .stars { display: flex; gap: 4px; }
+        .star { font-size: 1.5rem; filter: drop-shadow(0 0 6px rgba(255,215,0,0.6)); }
+        .star.empty { filter: none; opacity: 0.3; }
+    </style>
+</head>
+<body class="text-white">
+    <div id="app" class="max-w-4xl mx-auto px-4 py-6">
+        <div class="text-center mb-6">
+            <h1 class="game-title zcool mb-1">反PUA大作战</h1>
+            <p class="text-gray-400 text-sm">拒绝精神内耗 · 怼出爽感</p>
+        </div>
+
+        <div id="home-screen">
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="scene-card p-5" data-scene="职场PUA" data-level="easy" onclick="startGame('职场PUA', 'easy')">
+                    <div class="scene-icon mb-2">💼</div>
+                    <div class="level-badge easy mb-2">简单</div>
+                    <h3 class="font-bold text-lg mb-1">职场PUA</h3>
+                    <p class="text-gray-400 text-xs">领导打压、同事排挤...</p>
+                </div>
+                <div class="scene-card p-5" data-scene="亲戚催婚" data-level="easy" onclick="startGame('亲戚催婚', 'easy')">
+                    <div class="scene-icon mb-2">👨‍👩‍👧</div>
+                    <div class="level-badge easy mb-2">简单</div>
+                    <h3 class="font-bold text-lg mb-1">亲戚催婚</h3>
+                    <p class="text-gray-400 text-xs">催相亲、问工资...</p>
+                </div>
+                <div class="scene-card p-5" data-scene="甲方刁难" data-level="medium" onclick="startGame('甲方刁难', 'medium')">
+                    <div class="scene-icon mb-2">💰</div>
+                    <div class="level-badge medium mb-2">中等</div>
+                    <h3 class="font-bold text-lg mb-1">甲方刁难</h3>
+                    <p class="text-gray-400 text-xs">改改改、无理要求...</p>
+                </div>
+                <div class="scene-card p-5" data-scene="朋友攀比" data-level="hard" onclick="startGame('朋友攀比', 'hard')">
+                    <div class="scene-icon mb-2">🪑</div>
+                    <div class="level-badge hard mb-2">困难</div>
+                    <h3 class="font-bold text-lg mb-1">朋友攀比</h3>
+                    <p class="text-gray-400 text-xs">炫富、阴阳怪气...</p>
+                </div>
+            </div>
+
+            <div class="custom-input-area">
+                <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
+                    <span>🎯</span> 自定义挑战
+                </h3>
+                <p class="text-gray-400 text-sm mb-4">输入对方的PUA话术，AI分析你的回复能否怼成功</p>
+                <div class="mb-3">
+                    <textarea id="pua_input" rows="3" class="w-full bg-white/10 border border-white/10 rounded-xl p-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition" placeholder="输入对方的PUA话术，比如：你看看你，再看看人家..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <textarea id="your_reply" rows="2" class="w-full bg-white/10 border border-white/10 rounded-xl p-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition" placeholder="输入你的回复，比如：关你什么事？"></textarea>
+                </div>
+                <button class="analyze-btn w-full" onclick="analyzeReply()">
+                    ⚔️ AI分析：能否怼成功？
+                </button>
+                <div id="analyze-result"></div>
+            </div>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <span id="current-scene" class="font-bold text-sm">职场PUA</span>
+                    <span id="current-level" class="level-badge easy text-xs">简单</span>
+                </div>
+                <div class="score-display text-yellow-400 text-sm">
+                    🏆 <span id="score">0</span>
+                </div>
+            </div>
+
+            <div class="progress-rail mb-3">
+                <div class="progress-fill" id="progress-bar" style="width: 0%"></div>
+            </div>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="flex items-center justify-center" style="width: 50px;">
+                    <div id="boss-sprite" class="boss-sprite" style="font-size: 2.5rem;">👹</div>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs text-red-400">👹 BOSS</span>
+                        <span class="text-xs font-bold text-red-400"><span id="boss-hp-text">100</span>%</span>
+                    </div>
+                    <div class="hp-bar-container" style="height: 20px;">
+                        <div class="hp-bar-fill boss-hp" id="boss-hp-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs text-green-400">🛡️ 你</span>
+                        <span class="text-xs font-bold text-green-400"><span id="player-hp-text">100</span>%</span>
+                    </div>
+                    <div class="hp-bar-container" style="height: 20px;">
+                        <div class="hp-bar-fill player-hp" id="player-hp-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white/5 rounded-xl p-4 mb-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-400">第 <span id="question-num">1</span> / <span id="total-questions">10</span> 题</span>
+                    <span class="text-xs text-orange-400" id="combo-display"></span>
+                </div>
+                <div class="mb-3">
+                    <div class="text-xs text-red-400 mb-1">👹 BOSS的攻击：</div>
+                    <p id="pua-question" class="text-base font-medium bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 text-red-200">"你怎么这么笨，这点事都做不好？"</p>
+                </div>
+            </div>
+
+            <div id="options-container" class="space-y-2 mb-3"></div>
+
+            <div class="flex gap-2">
+                <button onclick="showHome()" class="flex-1 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition text-sm">🏠 主页</button>
+                <button onclick="skipQuestion()" class="flex-1 py-2 rounded-lg bg-orange-500/20 border border-orange-500/30 hover:bg-orange-500/30 transition text-orange-300 text-sm">⏭️ 跳过</button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="hidden text-center py-8">
+            <div id="result-icon" class="text-8xl mb-4">🏆</div>
+            <div id="result-title" class="victory-text mb-2">通关成功！</div>
+            <div id="result-subtitle" class="text-gray-400 mb-6">你成功怼赢了BOSS！</div>
+            <div class="stars mb-6" id="stars-container">
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+            </div>
+            <div class="bg-white/5 rounded-2xl p-6 mb-6 inline-block">
+                <div class="text-gray-400 text-sm mb-1">最终得分</div>
+                <div class="score-display text-yellow-400 text-4xl" id="final-score">1250</div>
+            </div>
+            <div class="flex gap-3 justify-center">
+                <button onclick="retryLevel()" class="py-3 px-8 rounded-xl bg-purple-500/20 border border-purple-500/30 hover:bg-purple-500/30 transition">🔄 再来一次</button>
+                <button onclick="showHome()" class="py-3 px-8 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition">🏠 返回主页</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            scene: '',
+            level: 'easy',
+            score: 0,
+            combo: 0,
+            bossHp: 100,
+            playerHp: 100,
+            currentQ: 0,
+            totalQ: 10,
+            questions: [],
+            correctCount: 0
+        };
+
+        function showHome() {
+            document.getElementById('home-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            resetGame();
+        }
+
+        function resetGame() {
+            gameState = {
+                scene: '',
+                level: 'easy',
+                score: 0,
+                combo: 0,
+                bossHp: 100,
+                playerHp: 100,
+                currentQ: 0,
+                totalQ: 10,
+                questions: [],
+                correctCount: 0
+            };
+            updateUI();
+        }
+
+        async function startGame(scene, level) {
+            gameState.scene = scene;
+            gameState.level = level;
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+
+            showLoading('🤖 AI正在生成10道题目...<br><span class="text-sm text-gray-400">预计需要1分钟左右，请耐心等待~</span>');
+            const questions = await loadQuestions(scene, level);
+            hideLoading();
+
+            if (questions.error) {
+                showToast('题目加载失败: ' + questions.error);
+                showHome();
+                return;
+            }
+
+            gameState.questions = questions;
+            gameState.currentQ = 0;
+            gameState.bossHp = 100;
+            gameState.playerHp = 100;
+            gameState.score = 0;
+            gameState.combo = 0;
+            gameState.correctCount = 0;
+
+            document.getElementById('total-questions').textContent = questions.length;
+            updateUI();
+            showQuestion();
+        }
+
+        async function loadQuestions(scene, level) {
+            try {
+                const response = await fetch('/api/game/questions/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scene, level, count: 10 })
+                });
+                const result = await response.json();
+                if (result.code === 200) return result.data;
+                return { error: result.msg };
+            } catch (e) {
+                return { error: e.message };
+            }
+        }
+
+        function showQuestion() {
+            const q = gameState.questions[gameState.currentQ];
+            document.getElementById('question-num').textContent = gameState.currentQ + 1;
+            document.getElementById('pua-question').textContent = `"${q.pua_line}"`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left';
+                btn.style.setProperty('--accent', ['#00d26a', '#ffd700', '#ff3b5c', '#9b59b6'][i]);
+                btn.innerHTML = `<span class="font-bold text-lg mr-2">${['A', 'B', 'C', 'D'][i]}.</span> ${opt.text}`;
+                btn.onclick = () => selectOption(btn, opt.is_correct, opt);
+                container.appendChild(btn);
+            });
+
+            const bossSprite = document.getElementById('boss-sprite');
+            bossSprite.classList.remove('attacking', 'hurt', 'defeated');
+        }
+
+        async function selectOption(btn, isCorrect, option) {
+            console.log('selectOption called, isCorrect:', isCorrect);
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                gameState.combo++;
+                const comboBonus = Math.min(gameState.combo, 5);
+                const damage = 15 + comboBonus * 5;
+                gameState.bossHp = Math.max(0, gameState.bossHp - damage);
+                gameState.score += 100 * comboBonus;
+                gameState.correctCount++;
+
+                showDamagePop(damage, 'damage');
+                showCombo(gameState.combo);
+                spawnParticles('#ff3b5c', 12);
+
+                const bossSprite = document.getElementById('boss-sprite');
+                bossSprite.classList.add('hurt');
+                setTimeout(() => bossSprite.classList.remove('hurt'), 400);
+
+            } else {
+                btn.classList.add('wrong');
+                gameState.combo = 0;
+                const damage = 20;
+                gameState.playerHp = Math.max(0, gameState.playerHp - damage);
+
+                showDamagePop(damage, 'heal');
+                spawnParticles('#00d26a', 8);
+
+                const bossSprite = document.getElementById('boss-sprite');
+                bossSprite.classList.add('attacking');
+                setTimeout(() => bossSprite.classList.remove('attacking'), 500);
+            }
+
+            updateUI();
+
+            setTimeout(() => {
+                if (gameState.bossHp <= 0) {
+                    endGame(true);
+                } else if (gameState.playerHp <= 0) {
+                    endGame(false);
+                } else {
+                    nextQuestion();
+                }
+            }, 1200);
+        }
+
+        function nextQuestion() {
+            gameState.currentQ++;
+            console.log('nextQuestion called, currentQ:', gameState.currentQ, 'totalQ:', gameState.totalQ);
+            if (gameState.currentQ >= gameState.totalQ) {
+                console.log('All questions done, bossHp:', gameState.bossHp, 'playerHp:', gameState.playerHp);
+                if (gameState.bossHp > 0 && gameState.playerHp > 0) {
+                    endGame(true);
+                }
+            } else {
+                console.log('Showing next question');
+                showQuestion();
+            }
+        }
+
+        function skipQuestion() {
+            gameState.combo = 0;
+            gameState.playerHp = Math.max(0, gameState.playerHp - 10);
+            updateUI();
+            nextQuestion();
+        }
+
+        function endGame(victory) {
+            const bossSprite = document.getElementById('boss-sprite');
+            if (victory) {
+                bossSprite.classList.add('defeated');
+            }
+
+            setTimeout(() => {
+                document.getElementById('game-screen').classList.add('hidden');
+                document.getElementById('result-screen').classList.remove('hidden');
+
+                const stars = gameState.correctCount >= 5 ? 3 : gameState.correctCount >= 3 ? 2 : 1;
+                const starHtml = Array(3).fill(0).map((_, i) =>
+                    `<span class="star ${i < stars ? '' : 'empty'}">⭐</span>`
+                ).join('');
+
+                document.getElementById('stars-container').innerHTML = starHtml;
+                document.getElementById('result-icon').textContent = victory ? '🏆' : '💀';
+                document.getElementById('result-title').className = victory ? 'victory-text mb-2' : 'defeat-text mb-2';
+                document.getElementById('result-title').textContent = victory ? '通关成功！' : '被PUA了...';
+                document.getElementById('result-subtitle').textContent = victory
+                    ? `你成功怼赢了BOSS！答对${gameState.correctCount}题`
+                    : `BOSS的PUA太狠了...答对${gameState.correctCount}题`;
+                document.getElementById('final-score').textContent = gameState.score;
+            }, victory ? 1000 : 500);
+        }
+
+        function retryLevel() {
+            startGame(gameState.scene, gameState.level);
+        }
+
+        function updateUI() {
+            document.getElementById('current-scene').textContent = gameState.scene;
+            const levelEl = document.getElementById('current-level');
+            levelEl.className = `level-badge ${gameState.level} text-xs`;
+            levelEl.textContent = { easy: '简单', medium: '中等', hard: '困难' }[gameState.level];
+
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('boss-hp-text').textContent = gameState.bossHp;
+            document.getElementById('player-hp-text').textContent = gameState.playerHp;
+            document.getElementById('boss-hp-bar').style.width = gameState.bossHp + '%';
+            document.getElementById('player-hp-bar').style.width = gameState.playerHp + '%';
+
+            const progress = (gameState.currentQ / gameState.totalQ) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        function showDamagePop(value, type) {
+            const pop = document.createElement('div');
+            pop.className = `damage-pop ${type}`;
+            pop.textContent = type === 'damage' ? `-${value}` : `+${value}`;
+            pop.style.left = (Math.random() * 60 + 20) + '%';
+            pop.style.top = (Math.random() * 30 + 35) + '%';
+            document.body.appendChild(pop);
+            setTimeout(() => pop.remove(), 1000);
+        }
+
+        function showCombo(combo) {
+            if (combo < 2) return;
+            const existing = document.querySelector('.combo-display');
+            if (existing) existing.remove();
+
+            const comboEl = document.createElement('div');
+            comboEl.className = 'combo-display';
+            comboEl.textContent = combo >= 5 ? `🔥 终极连击！x${combo}` : `⚡ ${combo} 连击！`;
+            document.body.appendChild(comboEl);
+            setTimeout(() => comboEl.remove(), 800);
+        }
+
+        function spawnParticles(color, count) {
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.cssText = `
+                    left: 50%; top: 40%;
+                    width: ${Math.random() * 8 + 4}px; height: ${Math.random() * 8 + 4}px;
+                    background: ${color};
+                    --tx: ${(Math.random() - 0.5) * 200}px;
+                    --ty: ${(Math.random() - 0.5) * 200}px;
+                    animation: particleFly ${Math.random() * 0.5 + 0.5}s ease-out forwards;
+                `;
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 1000);
+            }
+        }
+
+        function showLoading(text) {
+            let el = document.getElementById('loading-overlay');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'loading-overlay';
+                el.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+                el.innerHTML = `<div class="text-center"><div class="text-6xl mb-6 animate-bounce">🤖</div><div class="text-white text-xl mb-2" id="loading-text">加载中...</div><div class="text-gray-400 text-sm">请稍候...</div></div>`;
+                document.body.appendChild(el);
+            }
+            document.getElementById('loading-text').innerHTML = text;
+        }
+
+        function hideLoading() {
+            const el = document.getElementById('loading-overlay');
+            if (el) el.remove();
+        }
+
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'toast';
+                t.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg z-50';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3000);
+        }
+
+        async function analyzeReply() {
+            const puaInput = document.getElementById('pua_input').value.trim();
+            const yourReply = document.getElementById('your_reply').value.trim();
+
+            if (!puaInput || !yourReply) {
+                showToast('请填写PUA话术和你的回复');
+                return;
+            }
+
+            showLoading('AI分析中...');
+
+            try {
+                const response = await fetch('/api/game/analyze/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pua_line: puaInput, your_reply: yourReply })
+                });
+                const result = await response.json();
+                hideLoading();
+
+                if (result.code === 200) {
+                    const data = result.data;
+                    const scoreColor = data.score >= 80 ? '#00d26a' : data.score >= 50 ? '#ffd700' : '#ff3b5c';
+                    const scoreLabel = data.score >= 80 ? '💥 完美怼回！' : data.score >= 50 ? '⚡ 还行但不够爽' : '😅 被反怼了';
+
+                    document.getElementById('analyze-result').innerHTML = `
+                        <div class="ai-result-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="font-bold text-lg">${scoreLabel}</span>
+                                <span class="text-2xl font-bold" style="color: ${scoreColor}">${data.score}分</span>
+                            </div>
+                            <div class="result-bar mb-3">
+                                <div class="result-bar-fill" style="width: ${data.score}%; background: ${scoreColor}"></div>
+                            </div>
+                            ${data.best_reply ? `
+                                <div class="bg-green-500/10 border border-green-500/20 rounded-xl p-3 mb-3">
+                                    <div class="text-xs text-green-400 mb-1">✨ 高情商怼法（这才是正确答案）</div>
+                                    <div class="text-green-200">"${data.best_reply}"</div>
+                                </div>
+                            ` : ''}
+                            <div class="text-gray-400 text-sm">${data.reason}</div>
+                        </div>
+                    `;
+                } else {
+                    showToast(result.msg);
+                }
+            } catch (e) {
+                hideLoading();
+                showToast('分析失败，请稍后重试');
+            }
+        }
+    </script>
+</body>
+</html>

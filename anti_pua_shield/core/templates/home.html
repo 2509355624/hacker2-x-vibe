@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反PUA护盾 - 拒绝精神内耗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Noto Sans SC', sans-serif; }
+        .zcool { font-family: 'ZCOOL KuaiLe', cursive; }
+
+        :root {
+            --gradient-1: #667eea;
+            --gradient-2: #764ba2;
+            --gradient-3: #f093fb;
+            --gradient-4: #f5576c;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            min-height: 100vh;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradientShift 5s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-hover::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+
+        .card-hover:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 14px 32px;
+            border-radius: 14px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-btn.primary:hover {
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .nav-btn.game {
+            background: linear-gradient(135deg, #f5576c, #f093fb);
+            border: none;
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .nav-btn.game:hover {
+            box-shadow: 0 8px 30px rgba(245, 87, 108, 0.5);
+        }
+
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.3);
+            animation: pulse-ring 2s ease-out infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .glow-text {
+            text-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #a3bffa;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="min-h-screen flex flex-col">
+        <header class="p-6">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <div class="pulse-ring"></div>
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl relative z-10">
+                            🛡️
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-xl glow-text">反PUA护盾</h1>
+                        <p class="text-gray-400 text-xs">拒绝精神内耗</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <a href="/chat" class="nav-btn primary">
+                        <span>💬</span> 聊天模式
+                    </a>
+                    <a href="/game" class="nav-btn game">
+                        <span>🎮</span> 游戏模式
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 flex items-center justify-center px-6 py-12">
+            <div class="max-w-5xl w-full">
+                <div class="text-center mb-16">
+                    <h1 class="hero-title zcool mb-4">反PUA护盾生成器</h1>
+                    <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                        面对精神控制与言语攻击？一键生成你的专属反击话术，怼出爽感，守护心理边界！
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <div class="card-hover glass-card rounded-3xl p-8">
+                        <div class="feature-icon">
+                            💬
+                        </div>
+                        <h2 class="text-2xl font-bold mb-3">聊天模式</h2>
+                        <p class="text-gray-400 mb-6">
+                            输入对方的PUA话术，AI为你生成多层次反击策略：低情商爽怼、中情商回击、高情商应对、摆烂终结术。
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="tag">💼 职场PUA</span>
+                            <span class="tag">👨‍👩‍👧 亲戚催婚</span>
+                            <span class="tag">💰 甲方刁难</span>
+                            <span class="tag">🪑 朋友攀比</span>
+                        </div>
+                        <a href="/chat" class="nav-btn primary w-full justify-center">
+                            <span>开始聊天</span>
+                            <span>→</span>
+                        </a>
+                    </div>
+
+                    <div class="card-hover glass-card rounded-3xl p-8">
+                        <div class="feature-icon">
+                            🎮
+                        </div>
+                        <h2 class="text-2xl font-bold mb-3">游戏模式</h2>
+                        <p class="text-gray-400 mb-6">
+                            4大场景关卡，AI生成真实PUA攻击，每关10道选择题，怼赢BOSS获得分数成就感！还能自定义挑战让AI评判你的怼法。
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="tag">⚔️ 闯关挑战</span>
+                            <span class="tag">🩸 BOSS对战</span>
+                            <span class="tag">🔥 连击加分</span>
+                            <span class="tag">🤖 AI评判</span>
+                        </div>
+                        <a href="/game" class="nav-btn game w-full justify-center">
+                            <span>进入游戏</span>
+                            <span>→</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-16 text-center">
+                    <div class="inline-flex items-center gap-2 text-gray-500 text-sm">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        服务运行中 · Powered by AI
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
