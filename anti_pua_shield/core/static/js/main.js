@@ -34,16 +34,15 @@ document.getElementById('generate_btn').addEventListener('click', async () => {
     hideToast();
 
     try {
-        const formData = new FormData();
-        formData.append('scene', selectedScene);
-        formData.append('user_input', userInput);
-
         const response = await fetch('/api/generate/', {
             method: 'POST',
-            body: formData,
             headers: {
-                'X-CSRFToken': csrftoken
-            }
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                scene: selectedScene,
+                user_input: userInput
+            })
         });
 
         const result = await response.json();

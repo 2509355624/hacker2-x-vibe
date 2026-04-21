@@ -1,83 +1,91 @@
-{% extends "base.html" %}
 
-{% block title %}反PUA护盾生成器 - 拒绝精神内耗，一键生成你的边界护盾{% endblock %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反PUA护盾生成器 - 拒绝精神内耗，一键生成你的边界护盾</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-gray-50 min-h-screen py-8 px-4">
+    <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">反PUA护盾生成器</h1>
+            <p class="text-gray-500">拒绝精神内耗，一键生成你的边界护盾</p>
+        </div>
 
-{% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">反PUA护盾生成器</h1>
-        <p class="text-gray-500">拒绝精神内耗，一键生成你的边界护盾</p>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">选择场景</label>
-            <div class="grid grid-cols-2 gap-3" id="scene-group">
-                <button class="scene-btn border-2 border-gray-200 rounded-lg py-3 px-2 hover:border-indigo-500 hover:bg-indigo-50 transition" data-scene="职场PUA">职场PUA</button>
-                <button class="scene-btn border-2 border-gray-200 rounded-lg py-3 px-2 hover:border-indigo-500 hover:bg-indigo-50 transition" data-scene="亲戚催婚">亲戚催婚</button>
-                <button class="scene-btn border-2 border-gray-200 rounded-lg py-3 px-2 hover:border-indigo-500 hover:bg-indigo-50 transition" data-scene="甲方刁难">甲方刁难</button>
-                <button class="scene-btn border-2 border-gray-200 rounded-lg py-3 px-2 hover:border-indigo-500 hover:bg-indigo-50 transition" data-scene="朋友攀比">朋友攀比</button>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">选择场景</label>
+                <div class="grid grid-cols-2 gap-3" id="scene-group">
+                    <button class="scene-btn border-2 border-gray-200 rounded-lg py-3 px-2 hover:border-indigo-500 hover:bg-indigo-50 transition" data-scene="职场PUA">职场PUA</button>
+                    <button class="scene-btn border-2 border-gray-200 rounded-lg py-3 px-2 hover:border-indigo-500 hover:bg-indigo-50 transition" data-scene="亲戚催婚">亲戚催婚</button>
+                    <button class="scene-btn border-2 border-gray-200 rounded-lg py-3 px-2 hover:border-indigo-500 hover:bg-indigo-50 transition" data-scene="甲方刁难">甲方刁难</button>
+                    <button class="scene-btn border-2 border-gray-200 rounded-lg py-3 px-2 hover:border-indigo-500 hover:bg-indigo-50 transition" data-scene="朋友攀比">朋友攀比</button>
+                </div>
+                <input type="hidden" id="selected_scene" name="scene">
             </div>
-            <input type="hidden" id="selected_scene" name="scene">
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">对方的刁难/PUA话术</label>
+                <textarea id="user_input" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入对方说的话，比如：你都这么大了怎么还不结婚？"></textarea>
+            </div>
+
+            <button id="generate_btn" class="w-full bg-indigo-600 text-white font-medium py-3 rounded-lg hover:bg-indigo-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+                <span id="btn_text">一键生成护盾</span>
+                <span id="loading_text" class="hidden">生成中...</span>
+            </button>
         </div>
 
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">对方的刁难/PUA话术</label>
-            <textarea id="user_input" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入对方说的话，比如：你都这么大了怎么还不结婚？"></textarea>
-        </div>
+        <div id="result_card" class="bg-white rounded-xl shadow-md p-6 hidden">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">你的反PUA护盾</h2>
 
-        <button id="generate_btn" class="w-full bg-indigo-600 text-white font-medium py-3 rounded-lg hover:bg-indigo-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
-            <span id="btn_text">一键生成护盾</span>
-            <span id="loading_text" class="hidden">生成中...</span>
-        </button>
-    </div>
+            <div class="mb-4">
+                <h3 class="font-medium text-gray-700 mb-3">分情商回怼语录</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="border-l-4 border-red-500 bg-red-50 rounded-lg p-3">
+                        <p class="font-bold text-red-600 mb-1">低情商（爽怼天花板）</p>
+                        <div id="low_eq" class="text-gray-700 whitespace-pre-line"></div>
+                        <button class="copy-btn text-red-600 text-sm mt-1" data-target="low_eq">一键复制</button>
+                    </div>
+                    <div class="border-l-4 border-gray-400 bg-gray-50 rounded-lg p-3">
+                        <p class="font-bold text-gray-600 mb-1">中情商</p>
+                        <div id="mid_eq" class="text-gray-700 whitespace-pre-line"></div>
+                        <button class="copy-btn text-gray-600 text-sm mt-1" data-target="mid_eq">一键复制</button>
+                    </div>
+                    <div class="border-l-4 border-green-500 bg-green-50 rounded-lg p-3">
+                        <p class="font-bold text-green-600 mb-1">高情商</p>
+                        <div id="high_eq" class="text-gray-700 whitespace-pre-line"></div>
+                        <button class="copy-btn text-green-600 text-sm mt-1" data-target="high_eq">一键复制</button>
+                    </div>
+                    <div class="border-l-4 border-purple-500 bg-purple-50 rounded-lg p-3">
+                        <p class="font-bold text-purple-600 mb-1">超高情商（摆烂终结）</p>
+                        <div id="super_eq" class="text-gray-700 whitespace-pre-line"></div>
+                        <button class="copy-btn text-purple-600 text-sm mt-1" data-target="super_eq">一键复制</button>
+                    </div>
+                </div>
+            </div>
 
-    <div id="result_card" class="bg-white rounded-xl shadow-md p-6 hidden">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">你的反PUA护盾</h2>
+            <div class="mb-4">
+                <h3 class="font-medium text-gray-700 mb-2 flex justify-between">
+                    <span>心态建设解药</span>
+                    <button class="copy-btn text-indigo-600 text-sm" data-target="mind_content">一键复制</button>
+                </h3>
+                <div id="mind_content" class="bg-gray-50 rounded-lg p-3 text-gray-700 whitespace-pre-line"></div>
+            </div>
 
-        <div class="mb-4">
-            <h3 class="font-medium text-gray-700 mb-3">分情商回怼语录</h3>
-            <div class="grid grid-cols-1 gap-3">
-                <div class="border-l-4 border-red-500 bg-red-50 rounded-lg p-3">
-                    <p class="font-bold text-red-600 mb-1">低情商（爽怼天花板）</p>
-                    <div id="low_eq" class="text-gray-700 whitespace-pre-line"></div>
-                    <button class="copy-btn text-red-600 text-sm mt-1" data-target="low_eq">一键复制</button>
-                </div>
-                <div class="border-l-4 border-gray-400 bg-gray-50 rounded-lg p-3">
-                    <p class="font-bold text-gray-600 mb-1">中情商</p>
-                    <div id="mid_eq" class="text-gray-700 whitespace-pre-line"></div>
-                    <button class="copy-btn text-gray-600 text-sm mt-1" data-target="mid_eq">一键复制</button>
-                </div>
-                <div class="border-l-4 border-green-500 bg-green-50 rounded-lg p-3">
-                    <p class="font-bold text-green-600 mb-1">高情商</p>
-                    <div id="high_eq" class="text-gray-700 whitespace-pre-line"></div>
-                    <button class="copy-btn text-green-600 text-sm mt-1" data-target="high_eq">一键复制</button>
-                </div>
-                <div class="border-l-4 border-purple-500 bg-purple-50 rounded-lg p-3">
-                    <p class="font-bold text-purple-600 mb-1">超高情商（摆烂终结）</p>
-                    <div id="super_eq" class="text-gray-700 whitespace-pre-line"></div>
-                    <button class="copy-btn text-purple-600 text-sm mt-1" data-target="super_eq">一键复制</button>
-                </div>
+            <div class="mb-4">
+                <h3 class="font-medium text-gray-700 mb-2 flex justify-between">
+                    <span>边界拒绝话术</span>
+                    <button class="copy-btn text-indigo-600 text-sm" data-target="refuse_content">一键复制</button>
+                </h3>
+                <div id="refuse_content" class="bg-gray-50 rounded-lg p-3 text-gray-700 whitespace-pre-line"></div>
             </div>
         </div>
 
-        <div class="mb-4">
-            <h3 class="font-medium text-gray-700 mb-2 flex justify-between">
-                <span>心态建设解药</span>
-                <button class="copy-btn text-indigo-600 text-sm" data-target="mind_content">一键复制</button>
-            </h3>
-            <div id="mind_content" class="bg-gray-50 rounded-lg p-3 text-gray-700 whitespace-pre-line"></div>
-        </div>
-
-        <div class="mb-4">
-            <h3 class="font-medium text-gray-700 mb-2 flex justify-between">
-                <span>边界拒绝话术</span>
-                <button class="copy-btn text-indigo-600 text-sm" data-target="refuse_content">一键复制</button>
-            </h3>
-            <div id="refuse_content" class="bg-gray-50 rounded-lg p-3 text-gray-700 whitespace-pre-line"></div>
-        </div>
+        <div id="error_toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg hidden"></div>
     </div>
-
-    <div id="error_toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg hidden"></div>
-</div>
-{% endblock %}
+    <script src="/js/main.js"></script>
+</body>
+</html>
