@@ -612,9 +612,9 @@
                 btn.classList.add('correct');
                 gameState.combo++;
                 const comboBonus = Math.min(gameState.combo, 5);
-                const damage = 15 + comboBonus * 5;
+                const damage = 10;
                 gameState.bossHp = Math.max(0, gameState.bossHp - damage);
-                gameState.score += 100 * comboBonus;
+                gameState.score += 100 + (comboBonus - 1) * 50;
                 gameState.correctCount++;
 
                 showDamagePop(damage, 'damage');
@@ -628,7 +628,7 @@
             } else {
                 btn.classList.add('wrong');
                 gameState.combo = 0;
-                const damage = 20;
+                const damage = 25;
                 gameState.playerHp = Math.max(0, gameState.playerHp - damage);
 
                 showDamagePop(damage, 'heal');
@@ -646,6 +646,8 @@
                     endGame(true);
                 } else if (gameState.playerHp <= 0) {
                     endGame(false);
+                } else if (gameState.correctCount >= gameState.totalQ) {
+                    endGame(true);
                 } else {
                     nextQuestion();
                 }
@@ -654,11 +656,15 @@
 
         function nextQuestion() {
             gameState.currentQ++;
-            console.log('nextQuestion called, currentQ:', gameState.currentQ, 'totalQ:', gameState.totalQ);
+            console.log('nextQuestion called, currentQ:', gameState.currentQ, 'totalQ:', gameState.totalQ, 'correctCount:', gameState.correctCount);
             if (gameState.currentQ >= gameState.totalQ) {
-                console.log('All questions done, bossHp:', gameState.bossHp, 'playerHp:', gameState.playerHp);
-                if (gameState.bossHp > 0 && gameState.playerHp > 0) {
+                console.log('All questions done, bossHp:', gameState.bossHp, 'playerHp:', gameState.playerHp, 'correctCount:', gameState.correctCount);
+                if (gameState.correctCount >= gameState.totalQ) {
                     endGame(true);
+                } else if (gameState.playerHp <= 0) {
+                    endGame(false);
+                } else {
+                    endGame(false);
                 }
             } else {
                 console.log('Showing next question');
